@@ -1,1 +1,4 @@
 local/
+.vscode/
+.env
+*.pyc

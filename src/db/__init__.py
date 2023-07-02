@@ -1,7 +1,13 @@
 import asyncio
 import os
+from typing import Optional
 
 import motor.motor_asyncio
+from beanie import Document, Indexed, init_beanie
+from pydantic import BaseModel
+
+from db.football import Match, Transfer
+from db.gpt import Bluff
 
 
 def create_connstring():
@@ -19,25 +25,14 @@ def create_client():
     return motor.motor_asyncio.AsyncIOMotorClient(conn)
 
 
-async def do_insert(db, **kwargs):
-    document = {'key': 'value'}
-    result = await db.test_collection.insert_one(document)
-    print('result %s' % repr(result.inserted_id))
-
-
-def run(func, **kwargs):
+def get_db():
     client = create_client()
-    db = client.dev
-    loop = client.get_io_loop()
-    loop.run_until_complete(func(db=db, **kwargs))
+    return client[os.environ.get("MONGODB_DATABASE")]
 
 
-from typing import Optional
-
-from pydantic import BaseModel
-
-from beanie import Document, Indexed, init_beanie
-
+async def start_beanie_session():
+    db = get_db()
+    await init_beanie(database=db, document_models=[Transfer, Match, Bluff])
 
 class Category(BaseModel):
     name: str

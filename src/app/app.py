@@ -27,5 +27,4 @@ async def get_bluff(request: Request):
 
 if __name__ == "__main__":
     import uvicorn
-    b=1
-    uvicorn.run(app, host="localhost", port=8000, log_level="info")
+    uvicorn.run(app, host="localhost", port=8080, log_level="info")

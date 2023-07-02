@@ -13,7 +13,10 @@ class Bluff(Document):
     message: str
     date: dt.date
     usage: Usage
+
     class Settings:
         bson_encoders = {
-                dt.date: lambda d: dt.datetime(year=d.year, month=d.month, day=d.day, hour=0, minute=0, second=0)
-            }
+            dt.date: lambda d: dt.datetime(
+                year=d.year, month=d.month, day=d.day, hour=0, minute=0, second=0
+            )
+        }

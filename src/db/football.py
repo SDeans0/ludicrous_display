@@ -4,6 +4,7 @@ from typing import Optional
 from beanie import Document, Indexed
 from pydantic import BaseModel
 
+
 class TransferType(str, Enum):
     done_deal = "DONE DEAL"
     loan = "LOAN"

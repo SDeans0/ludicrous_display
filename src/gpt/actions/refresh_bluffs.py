@@ -25,8 +25,13 @@ def generate_from_prompt(
     base_prompt: str = bluffball.prompt,
 ) -> Bluff:
     response = _get_gpt_response(content=content, base_prompt=base_prompt)
-    bluff = Bluff(message=response["choices"][0]["message"]["content"], date=dt.date.today(), usage=Usage(**response["usage"].to_dict()))   
+    bluff = Bluff(
+        message=response["choices"][0]["message"]["content"],
+        date=dt.date.today(),
+        usage=Usage(**response["usage"].to_dict()),
+    )
     return bluff
+
 
 async def refresh_bluffs():
     bluffs = []
@@ -43,11 +48,9 @@ async def refresh_bluffs():
         await Bluff.insert_many(bluffs)
 
 
-
 if __name__ == "__main__":
     # b = 1
     # content = "{\n  \"headline\": \"Manchester United signs new striker\",\n  \"player\": \"Gareth Bale\",\n  \"club\": \"Real Madrid\",\n  \"fee\": \"$100 million\",\n  \"contract\": \"5-year deal\"\n}"
     # x = generate_from_prompt(content=content)
     # b =1
     asyncio.run(refresh_bluffs())
-

@@ -27,7 +27,7 @@ def generate_from_prompt(
     response = _get_gpt_response(content=content, base_prompt=base_prompt)
     bluff = Bluff(
         message=response["choices"][0]["message"]["content"],
-        date=dt.date.today(),
+        date=dt.datetime.now(),
         usage=Usage(**response["usage"].to_dict()),
     )
     return bluff
@@ -35,7 +35,6 @@ def generate_from_prompt(
 
 async def refresh_bluffs():
     bluffs = []
-    today = dt.date.today()
     await start_beanie_session()
     transfers = await Transfer.find(Transfer.bluffed == False).to_list(length=100)
     for t in transfers:

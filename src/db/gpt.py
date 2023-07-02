@@ -1,5 +1,5 @@
 import datetime as dt
-from beanie import Document
+from beanie import Document, Indexed
 from pydantic import BaseModel
 
 
@@ -11,7 +11,7 @@ class Usage(BaseModel):
 
 class Bluff(Document):
     message: str
-    date: dt.date
+    date: Indexed(dt.datetime)
     usage: Usage
 
     class Settings:

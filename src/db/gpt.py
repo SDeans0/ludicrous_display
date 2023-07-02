@@ -16,7 +16,7 @@ class Bluff(Document):
 
     class Settings:
         bson_encoders = {
-            dt.date: lambda d: dt.datetime(
+            dt.datetime: lambda d: dt.datetime(
                 year=d.year, month=d.month, day=d.day, hour=0, minute=0, second=0
             )
         }

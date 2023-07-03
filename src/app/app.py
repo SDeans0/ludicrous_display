@@ -25,6 +25,6 @@ async def get_bluff(request: Request):
     lines = latest.message.split("\n")
     return templates.TemplateResponse("bluff.html", {"request":request, "bluff_lines": lines})
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="localhost", port=8080, log_level="info")
+# if __name__ == "__main__":
+#     import uvicorn
+#     uvicorn.run(app, host="localhost", port=8080, log_level="info")

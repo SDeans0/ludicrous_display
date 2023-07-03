@@ -1,1 +1,1 @@
-web: sh -c 'cd src && gunicorn -b 127.0.0.1:8080 --config app/gunicorn.conf.py  --worker-tmp-dir /dev/shm app.app:app
+web: sh -c 'cd src && gunicorn --config app/gunicorn.conf.py  --worker-tmp-dir /dev/shm app.app:app

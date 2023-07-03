@@ -13,10 +13,10 @@ async def startup_event():
     await start_beanie_session()
     
 
-app.mount("/static", StaticFiles(directory="./src/app/static"), name="static")
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 
-templates = Jinja2Templates(directory="./src/app/templates")
+templates = Jinja2Templates(directory="app/templates")
 
 
 @app.get("/", response_class=HTMLResponse)

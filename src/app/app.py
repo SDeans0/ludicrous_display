@@ -1,3 +1,5 @@
+import os
+
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -6,6 +8,9 @@ from fastapi.templating import Jinja2Templates
 from db import start_beanie_session
 from db.gpt import Bluff
 
+WORKING_DIR = os.environ.get('SRC_DIR','/workspace/src')
+
+
 app = FastAPI()
 
 @app.on_event("startup")
@@ -13,10 +18,10 @@ async def startup_event():
     await start_beanie_session()
     
 
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
+app.mount("/static", StaticFiles(directory=f"{WORKING_DIR}/app/static"), name="static")
 
 
-templates = Jinja2Templates(directory="app/templates")
+templates = Jinja2Templates(directory=f"{WORKING_DIR}/app/templates")
 
 
 @app.get("/", response_class=HTMLResponse)

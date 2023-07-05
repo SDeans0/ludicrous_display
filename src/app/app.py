@@ -18,7 +18,7 @@ async def startup_event():
     await start_beanie_session()
     
 
-app.mount("/static", StaticFiles(directory=f"{WORKING_DIR}/app/static"), name="static")
+#app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 
 templates = Jinja2Templates(directory=f"{WORKING_DIR}/app/templates")

@@ -1,13 +1,17 @@
 import asyncio
 import datetime as dt
+import logging
 import openai
 from db import create_client, start_beanie_session, get_db
 from db.football import Transfer, TransferType
 from db.gpt import Bluff, Usage
 import gpt.prompts.bluffball as bluffball
 
+logger = logging.getLogger(__name__)
+
 
 def _get_gpt_response(content: str, base_prompt: str = bluffball.prompt):
+    logger.debug(f"Getting GPT response for {content}")
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[
@@ -24,6 +28,7 @@ def generate_from_prompt(
     content: str,
     base_prompt: str = bluffball.prompt,
 ) -> Bluff:
+    logger.debug(f"Generating bluff from prompt for {content}")
     response = _get_gpt_response(content=content, base_prompt=base_prompt)
     bluff = Bluff(
         message=response["choices"][0]["message"]["content"],
@@ -34,9 +39,11 @@ def generate_from_prompt(
 
 
 async def refresh_bluffs():
+    logger.debug("Refreshing bluffs")
     bluffs = []
     await start_beanie_session()
     transfers = await Transfer.find(Transfer.bluffed == False).to_list(length=100)
+    logger.debug(f"Got {len(transfers)} transfers")
     for t in transfers:
         if t.transferType != TransferType.done_deal:
             continue
@@ -44,6 +51,7 @@ async def refresh_bluffs():
         bluffs.append(generate_from_prompt(content=transfer_str))
         await Transfer.set(t, {"bluffed": True})
     if bluffs:
+        logger.info(f"Inserting {len(bluffs)} bluffs")
         await Bluff.insert_many(bluffs)
 
 

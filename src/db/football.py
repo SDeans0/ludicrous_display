@@ -17,7 +17,7 @@ class TransferType(str, Enum):
 
 
 class BaseNews(BaseModel):
-    date_added: dt.date
+    date_added: dt.datetime
     bluffed: bool = False
 
 
@@ -30,6 +30,19 @@ class Transfer(Document, BaseNews):
     newClub: str
     price: str
     renewal: str
+    league: Optional[str]
+
+    class Settings:
+        bson_encoders = {
+            dt.datetime: lambda d: dt.datetime(
+                year=d.year,
+                month=d.month,
+                day=d.day,
+                hour=d.hour,
+                minute=d.minute,
+                second=d.second,
+            )
+        }
 
 
 class Match(Document, BaseNews):

@@ -1,5 +1,6 @@
 import logging
 import os
+import random
 
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
@@ -10,6 +11,7 @@ from db import start_beanie_session
 from db.gpt import Bluff
 from football_api.actions import persist_fixtures, persist_transfers
 from gpt.actions.refresh_bluffs import refresh_bluffs
+from utils.dateutils import get_start_of_day
 
 WORKING_DIR = os.environ.get('SRC_DIR','/workspace/src')
 logger = logging.getLogger(__name__)
@@ -29,7 +31,11 @@ templates = Jinja2Templates(directory=f"{WORKING_DIR}/app/templates")
 
 @app.get("/", response_class=HTMLResponse)
 async def get_bluff(request: Request):
-    latest: Bluff = await Bluff.find().sort(-Bluff.date).limit(1).first_or_none()
+    sod = get_start_of_day()
+    n_latest: Bluff = await Bluff.find(Bluff.date >= sod).count()
+    logger.info(f"n_latest: {n_latest}")
+    skip = random.randint(0, n_latest)
+    latest: Bluff = await Bluff.find(Bluff.date >= sod).skip(skip).first_or_none()
     lines = latest.message.split("\n")
     return templates.TemplateResponse("bluff.html", {"request":request, "bluff_lines": lines})
 

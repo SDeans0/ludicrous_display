@@ -1,48 +1,46 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Bluffball</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.2/css/bulma.min.css">
-  </head>
-  <body>
-    <section class='section is-small'>
-      <div class="columns">
-        <div class="column content has-text-centered">
-          <a href = '/'>
-            <h1 class="title">Bluffball</h1>
-          </a>
-        </div>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bluffball</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.2/css/bulma.min.css">
+</head>
+
+<body>
+  <section class="section is-small">
+    <div class="columns">
+      <div class="column content has-text-centered">
+        <a href="/">
+          <h1 class="title">Bluffball</h1>
+        </a>
       </div>
-    </section>
-    <section class="section is-small">
-      <div class='columns'>
-        <div class="column">
-        </div>
-        <div class="column content has-text-justified">
-          <p>Flask-based app with expanding game rooms. Start a new game by clicking one of the buttons below, then share your URL with your friends so they can join the room you're in.</p>
-        </div>
-        <div class="column">
-        </div>
-      </div>
-      <div class='columns is-multiline'>
-        <div class="column content has-text-justified">
-            <p>
-                {% for i in bluff_lines %}
-                    {{ i }}<br>
-                {% endfor %}
-            </p>
-        </div>
-      </div>
-    </section>
-    <footer class="footer">
-      <div class="content has-text-centered">
+    </div>
+  </section>
+  <section class="section is-small">
+    <div class="columns">
+      <div class="column"></div>
+      <div class="column content has-text-justified is-half">
         <p>
-          Bluffball reimagined by <a href="https://www.github.com/sdeans0">Sam</a> using Chat GPT.
-          Refresh for more.
+          {% block content %}
+            {% for i in bluff_lines %}
+             {{ i }}<br>
+            {% endfor %}
+          {% endblock %}
         </p>
       </div>
-    </footer>
-  </body>
+      <div class="column"></div>
+    </div>
+  </section>
+  <footer class="footer">
+    <div class="content has-text-centered">
+      <p>
+        Bluffball implemented by <a href="https://www.github.com/sdeans0">Sam</a>.
+        Refresh for more.
+      </p>
+    </div>
+  </footer>
+</body>
+
 </html>

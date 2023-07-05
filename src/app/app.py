@@ -34,7 +34,7 @@ async def get_bluff(request: Request):
     sod = get_start_of_day()
     n_latest: Bluff = await Bluff.find(Bluff.date >= sod).count()
     logger.info(f"n_latest: {n_latest}")
-    skip = random.randint(0, n_latest)
+    skip = random.randint(0, n_latest-1)
     latest: Bluff = await Bluff.find(Bluff.date >= sod).skip(skip).first_or_none()
     lines = latest.message.split("\n")
     return templates.TemplateResponse("bluff.html", {"request":request, "bluff_lines": lines})

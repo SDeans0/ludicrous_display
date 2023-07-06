@@ -2,6 +2,8 @@ import logging
 import os
 import random
 
+import datetime as dt
+
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -33,6 +35,9 @@ templates = Jinja2Templates(directory=f"{WORKING_DIR}/app/templates")
 async def get_bluff(request: Request):
     sod = get_start_of_day()
     n_latest: Bluff = await Bluff.find(Bluff.date >= sod).count()
+    while n_latest == 0:
+        sod = sod - dt.timedelta(days=1)
+        n_latest: Bluff = await Bluff.find(Bluff.date >= sod).count()
     logger.info(f"n_latest: {n_latest}")
     skip = random.randint(0, n_latest-1)
     latest: Bluff = await Bluff.find(Bluff.date >= sod).skip(skip).first_or_none()

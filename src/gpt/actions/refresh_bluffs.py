@@ -43,7 +43,7 @@ async def refresh_bluffs():
     bluffs = []
     await start_beanie_session()
     transfers = await Transfer.find(Transfer.bluffed == False).to_list(length=100)
-    logger.debug(f"Got {len(transfers)} transfers")
+    logger.info(f"Got {len(transfers)} transfers")
     for t in transfers:
         if t.transferType != TransferType.done_deal:
             continue

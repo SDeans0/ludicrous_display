@@ -1,4 +1,5 @@
 import asyncio
+import datetime as dt
 import os
 import logging
 from typing import Tuple
@@ -15,14 +16,20 @@ async def get_and_persist_fixtures(leagues: Tuple[str] = ("premierleague","thech
     """
     api_key = os.environ.get("RAPID_API_KEY")
     client = SimpleFootballApiClient(api_key=api_key)
+    now = dt.datetime.now()
     for league in leagues:
         fixtures = client.get_fixtures(chamionship=league)
         for fixture in fixtures:
+            if not fixture:
+                continue
             try:
-                await Match.insert_one(fixture)
+                await Match.insert_one(Match(date_added=now, **fixture))
             except Exception as e:
                 logger.exception(e)
 
 
 def main():
     asyncio.run(get_and_persist_fixtures())
+
+if __name__ == "__main__":
+    main()

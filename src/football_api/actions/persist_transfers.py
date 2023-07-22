@@ -8,6 +8,7 @@ from db.football import Transfer
 from football_api.client.client import SimpleFootballApiClient
 
 logger = logging.getLogger(__name__)
+logger.level = logging.DEBUG
 
 
 async def get_and_persist_transfers(leagues: Tuple[str] = ("premierleague","thechampionship", "leagueone","leaguetwo")):
@@ -33,5 +34,4 @@ def main():
     asyncio.run(async_main())
 
 if __name__ == "__main__":
-    
     main()

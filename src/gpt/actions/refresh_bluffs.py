@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 def _get_gpt_response(content: str, base_prompt: str = bluffball.prompt):
     logger.debug(f"Getting GPT response for {content}")
     response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
+        model="gpt-4",
         messages=[
             {"content": base_prompt, "role": "system"},
             {"role": "assistant", "content": content},

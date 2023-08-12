@@ -11,7 +11,8 @@ from fastapi.templating import Jinja2Templates
 
 from db import start_beanie_session
 from db.gpt import Bluff
-from football_api.actions import persist_fixtures, persist_transfers
+from football_api.actions import persist_transfers
+from livescore_api.actions import persist_matches
 from gpt.actions.refresh_bluffs import refresh_bluffs
 from utils.dateutils import get_start_of_day
 
@@ -62,7 +63,7 @@ async def post_transfer(request: Request):
 @app.post("/refresh/fixtures")
 async def post_fixture(request: Request):
     logger.info("refreshing fixtures")
-    await persist_fixtures.get_and_persist_fixtures()
+    await persist_matches.get_and_persist_fixtures()
     return {"status": "ok"}
 
 if __name__ == "__main__":

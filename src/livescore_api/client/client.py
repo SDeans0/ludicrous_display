@@ -30,7 +30,7 @@ class LiveScoreApiClient:
         endpoint = "matches/v2/list-by-date"
         params = {"Category": "soccer", "Date": datestr, "Timezone":0}
         return self._do_get(endpoint=endpoint, params=params)
-    
+
     
 
 if __name__ == "__main__":
@@ -42,4 +42,3 @@ if __name__ == "__main__":
     print(x)
     b=1
     # need to make a parser for this to puit it into a match object
-

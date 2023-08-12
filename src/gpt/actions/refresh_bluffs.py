@@ -3,10 +3,10 @@ import datetime as dt
 import logging
 import openai
 from db import create_client, start_beanie_session, get_db
-from db.football import Transfer, TransferType
+from db.football import Match, Transfer, TransferType
 from db.gpt import Bluff, Usage
 import gpt.prompts.bluffball as bluffball
-
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
@@ -42,7 +42,7 @@ async def refresh_bluffs():
     logger.debug("Refreshing bluffs")
     bluffs = []
     await start_beanie_session()
-    transfers = await Transfer.find(Transfer.bluffed == False).to_list(length=100)
+    transfers = await Transfer.find(Transfer.bluffed == False).to_list(length=10)
     logger.info(f"Got {len(transfers)} transfers")
     for t in transfers:
         if t.transferType != TransferType.done_deal:
@@ -50,6 +50,12 @@ async def refresh_bluffs():
         transfer_str = f"{t.playerName} from {t.oldClub} to {t.newClub} for {t.price}"
         bluffs.append(generate_from_prompt(content=transfer_str))
         await Transfer.set(t, {"bluffed": True})
+    matches = await Match.find(Match.bluffed == False).to_list(length=100)
+    logger.info(f"Got {len(matches)} matches")
+    for m in matches:
+        match_str = m.json()
+        bluffs.append(generate_from_prompt(content=match_str))
+        await Match.set(m, {"bluffed": True})
     if bluffs:
         logger.info(f"Inserting {len(bluffs)} bluffs")
         await Bluff.insert_many(bluffs)

@@ -21,10 +21,10 @@ async def get_and_persist_fixtures(leagues: Tuple[str] = ("premierleague","thech
     fixtures = client.get_matches()
     logger.info("Converting fixtures to matches")
     matches = convert_fixture(fixtures)
-    # try:
-    #     await Match.insert_many(matches)
-    # except Exception as e:
-    #     logger.exception(e)
+    try:
+        await Match.insert_many(matches)
+    except Exception as e:
+        logger.exception(e)
 
 
 def convert_fixture(fixture: dict, included_leagues: Tuple[str] = ("Premier League","Community Shield", "League One","FA Cup", "Championship", "League Two", "EFL Cup", "FA Women's Super League", "Women's FA Cup", "Women's World Cup", "Cymru Premier", "World Cup")) -> List[Match]:

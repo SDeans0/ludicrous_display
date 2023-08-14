@@ -20,14 +20,14 @@ async def get_and_persist_fixtures(leagues: Tuple[str] = ("premierleague","thech
     logger.info("Getting fixtures from api")
     fixtures = client.get_matches()
     logger.info("Converting fixtures to matches")
-    matches = convert_fixture(fixtures)
+    matches = convert_fixtures(fixtures)
     try:
         await Match.insert_many(matches)
     except Exception as e:
         logger.exception(e)
 
 
-def convert_fixture(fixture: dict, included_leagues: Tuple[str] = ("Premier League","Community Shield", "League One","FA Cup", "Championship", "League Two", "EFL Cup", "FA Women's Super League", "Women's FA Cup", "Women's World Cup", "Cymru Premier", "World Cup")) -> List[Match]:
+def convert_fixtures(fixture: dict, included_leagues: Tuple[str] = ("Premier League","Community Shield", "League One","FA Cup", "Championship", "League Two", "EFL Cup", "FA Women's Super League", "Women's FA Cup", "Women's World Cup", "Cymru Premier", "World Cup")) -> List[Match]:
     """
     Convert the fixture dictionary from the api into list of match objects
     """
@@ -35,34 +35,38 @@ def convert_fixture(fixture: dict, included_leagues: Tuple[str] = ("Premier Leag
 
     for stage in fixture["Stages"]:
         if (comp:=stage.get("CompN")) not in included_leagues:
-            logger.info(f"Skipping {comp} in country {stage['Cnm']}")
+            logger.info(f"Skipping {comp} in country {stage.get('Cnm', 'Unknown')}")
             continue
         logger.info(f"Converting {comp}")
-        for event in stage["Events"]:
+        for event in stage.get("Events", []):
             # example event structure, for a match between home team burnley and away team man city:
             # {'Eid': '968063', 'Pids': {'12': 'SBTE_29018274', '8': '968063'}, 'Tr1': '0', 'Tr2': '3', 'Trh1': '0', 'Trh2': '2', 'Tr1OR': '0', 'Tr2OR': '3', 'T1': [{...}], 'T2': [{...}], 'Eps': 'FT', 'Esid': 6, 'Epr': 2, 'Ecov': 0, ...}
             logger.info(f"Converting {event['T1'][0]['Nm']} vs {event['T2'][0]['Nm']}")
-            output.append(Match(
-                homeTeam=event["T1"][0]["Nm"],
-                awayTeam=event["T2"][0]["Nm"],
-                full_time_score=Score(
-                    homeTeamScore=event["Tr1"],
-                    awayTeamScore=event["Tr2"],
-                ),
-                half_time_score=Score(
-                    homeTeamScore=event["Trh1"],
-                    awayTeamScore=event["Trh2"],
-                ),
-                penalty_score=Score(
-                    homeTeamScore=event["Trp1"],
-                    awayTeamScore=event["Trp2"],
-                ) if "Trp1" in event else None,
-                competition=stage.get("CompN"),
-                country=stage["Cnm"], 
-                date=dt.date.today().isoformat(),
-                date_added=dt.datetime.now(),
-                bluffed=False,
-            ))
+            try:
+                output.append(Match(
+                    homeTeam=event["T1"][0]["Nm"],
+                    awayTeam=event["T2"][0]["Nm"],
+                    full_time_score=Score(
+                        homeTeamScore=event["Tr1"],
+                        awayTeamScore=event["Tr2"],
+                    ),
+                    half_time_score=Score(
+                        homeTeamScore=event["Trh1"],
+                        awayTeamScore=event["Trh2"],
+                    ),
+                    penalty_score=Score(
+                        homeTeamScore=event["Trp1"],
+                        awayTeamScore=event["Trp2"],
+                    ) if "Trp1" in event else None,
+                    competition=stage.get("CompN"),
+                    country=stage["Cnm"], 
+                    date=dt.date.today().isoformat(),
+                    date_added=dt.datetime.now(),
+                    bluffed=False,
+                ))
+            except KeyError as e:
+                logger.exception(str(e))
+                continue
     return output
 
 async def async_main():

@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-async def get_and_persist_fixtures(leagues: Tuple[str] = ("premierleague","thechampionship", "leagueone","leaguetwo")):
+async def get_and_persist_fixtures(leagues: Tuple[str] = ("Premier League","Community Shield", "League One","FA Cup", "Championship", "League Two", "EFL Cup", "FA Women's Super League", "Women's FA Cup", "Women's World Cup", "Cymru Premier", "World Cup")):
     """
     Get fixtures from the api and persist them in the database
     """
@@ -20,14 +20,14 @@ async def get_and_persist_fixtures(leagues: Tuple[str] = ("premierleague","thech
     logger.info("Getting fixtures from api")
     fixtures = client.get_matches()
     logger.info("Converting fixtures to matches")
-    matches = convert_fixtures(fixtures)
+    matches = convert_fixtures(fixtures, leagues)
     try:
         await Match.insert_many(matches)
     except Exception as e:
         logger.exception(e)
 
 
-def convert_fixtures(fixture: dict, included_leagues: Tuple[str] = ("Premier League","Community Shield", "League One","FA Cup", "Championship", "League Two", "EFL Cup", "FA Women's Super League", "Women's FA Cup", "Women's World Cup", "Cymru Premier", "World Cup")) -> List[Match]:
+def convert_fixtures(fixture: dict, included_leagues: Tuple[str]) -> List[Match]:
     """
     Convert the fixture dictionary from the api into list of match objects
     """

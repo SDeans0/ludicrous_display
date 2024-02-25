@@ -1,11 +1,13 @@
+from http import HTTPStatus
 import logging
 import os
 import random
 
 import datetime as dt
 
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse
+from fastapi.security import HTTPBasicCredentials, HTTPBearer
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -24,10 +26,18 @@ app = FastAPI()
 @app.on_event("startup")
 async def startup_event():
     await start_beanie_session()
-    
 
-#app.mount("/static", StaticFiles(directory="app/static"), name="static")
+security = HTTPBearer()
 
+def check_access_token(token: HTTPBasicCredentials = Depends(security)):
+    authorised =  token.credentials == os.environ.get("API_KEY")
+
+    if not authorised:
+        raise HTTPException(
+        status_code=HTTPStatus.UNAUTHORIZED.value,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
 
 templates = Jinja2Templates(directory=f"{WORKING_DIR}/app/templates")
 
@@ -46,21 +56,21 @@ async def get_bluff(request: Request):
     return templates.TemplateResponse("bluff.html", {"request":request, "bluff_lines": lines})
 
 
-@app.post("/refresh/bluffs")
-async def post_bluff(request: Request):
+@app.post("/refresh/bluffs", dependencies=[Depends(check_access_token)])
+async def post_bluff():
     logger.info("refreshing bluffs")
     await refresh_bluffs()
     return {"status": "ok"}
 
 
-@app.post("/refresh/transfers")
+@app.post("/refresh/transfers",  dependencies=[Depends(check_access_token)])
 async def post_transfer(request: Request):
     logger.info("refreshing transfers")
     await persist_transfers.get_and_persist_transfers()
     return {"status": "ok"}
 
 
-@app.post("/refresh/fixtures")
+@app.post("/refresh/fixtures",  dependencies=[Depends(check_access_token)])
 async def post_fixture(request: Request):
     logger.info("refreshing fixtures")
     await persist_matches.get_and_persist_fixtures()

@@ -10,14 +10,13 @@ from db.football import Match, Transfer
 from db.gpt import Bluff
 
 
-def create_connstring():
-    conn = "mongodb+srv://"
-    conn += os.environ.get("MONGODB_USER") + ":"
-    conn += os.environ.get("MONGODB_PASSWORD") + "@"
-    conn += os.environ.get("MONGODB_HOST") + "/"
-    conn += os.environ.get("MONGODB_DATABASE") + "?authSource=admin&replicaSet="
-    conn += os.environ.get("MONGODB_REPLICASET") + "&tls=true"
-    return conn
+def create_connstring(include_replicaset: bool = False):
+    connection_params = ["mongodb+srv://", os.environ.get("MONGODB_USER"), ":", os.environ.get("MONGODB_PASSWORD"), "@", os.environ.get("MONGODB_HOST"), "/", os.environ.get("MONGODB_DATABASE"), "?authSource=admin"]
+    if include_replicaset:
+        connection_params.append("&replicaSet=")
+        connection_params.append(os.environ.get("MONGODB_REPLICASET"))
+    connection_params.append("&tls=true")
+    return "".join(connection_params)
 
 
 def create_client():

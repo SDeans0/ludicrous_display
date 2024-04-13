@@ -48,13 +48,21 @@ async def refresh_bluffs():
         if t.transferType != TransferType.done_deal:
             continue
         transfer_str = f"{t.playerName} from {t.oldClub} to {t.newClub} for {t.price}"
-        bluffs.append(generate_from_prompt(content=transfer_str))
+        next_bluff = generate_from_prompt(content=transfer_str)
+        next_bluff.team1 = t.oldClub
+        next_bluff.team2 = t.newClub
+        bluffs.append(next_bluff)
         await Transfer.set(t, {"bluffed": True})
     matches = await Match.find(Match.bluffed == False).to_list(length=100)
     logger.info(f"Got {len(matches)} matches")
     for m in matches:
         match_str = m.json()
-        bluffs.append(generate_from_prompt(content=match_str))
+        next_bluff = generate_from_prompt(content=transfer_str)
+        next_bluff.team1 = m.homeTeam
+        next_bluff.team2 = m.awayTeam
+        next_bluff.cup = m.competition
+        next_bluff.country = m.country
+        bluffs.append(next_bluff)
         await Match.set(m, {"bluffed": True})
     if bluffs:
         logger.info(f"Inserting {len(bluffs)} bluffs")

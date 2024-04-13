@@ -5,6 +5,7 @@ import random
 
 import datetime as dt
 
+from beanie.odm.operators.find.logical import Or
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.security import HTTPBasicCredentials, HTTPBearer
@@ -33,6 +34,7 @@ def check_access_token(token: HTTPBasicCredentials = Depends(security)):
     authorised =  token.credentials == os.environ.get("API_KEY")
 
     if not authorised:
+        logger.error(f"Could not validate credentials: {token.credentials}")
         raise HTTPException(
         status_code=HTTPStatus.UNAUTHORIZED.value,
         detail="Could not validate credentials",
@@ -49,6 +51,46 @@ async def get_bluff(request: Request):
     while n_latest == 0:
         sod = sod - dt.timedelta(days=1)
         n_latest: Bluff = await Bluff.find(Bluff.date >= sod).count()
+    logger.info(f"n_latest: {n_latest}")
+    skip = random.randint(0, n_latest-1)
+    latest: Bluff = await Bluff.find(Bluff.date >= sod).skip(skip).first_or_none()
+    lines = latest.message.split("\n")
+    return templates.TemplateResponse("bluff.html", {"request":request, "bluff_lines": lines})
+
+
+@app.get("/country/{country}", response_class=HTMLResponse)
+async def get_bluff(request: Request, country: str):
+    sod = get_start_of_day()
+    n_latest: Bluff = await Bluff.find(Bluff.date >= sod, Bluff.country == country).count()
+    while n_latest == 0:
+        sod = sod - dt.timedelta(days=1)
+        n_latest: Bluff = await Bluff.find(Bluff.date >= sod, Bluff.country == country).count()
+    logger.info(f"n_latest: {n_latest}")
+    skip = random.randint(0, n_latest-1)
+    latest: Bluff = await Bluff.find(Bluff.date >= sod).skip(skip).first_or_none()
+    lines = latest.message.split("\n")
+    return templates.TemplateResponse("bluff.html", {"request":request, "bluff_lines": lines})
+
+@app.get("/team/{team}", response_class=HTMLResponse)
+async def get_bluff(request: Request, team: str):
+    sod = get_start_of_day()
+    n_latest: Bluff = await Bluff.find(Bluff.date >= sod, Or(Bluff.team1 == team, Bluff.team2 == team)).count()
+    while n_latest == 0:
+        sod = sod - dt.timedelta(days=1)
+        n_latest: Bluff = await Bluff.find(Bluff.date >= sod, Or(Bluff.team1 == team, Bluff.team2 == team)).count()
+    logger.info(f"n_latest: {n_latest}")
+    skip = random.randint(0, n_latest-1)
+    latest: Bluff = await Bluff.find(Bluff.date >= sod).skip(skip).first_or_none()
+    lines = latest.message.split("\n")
+    return templates.TemplateResponse("bluff.html", {"request":request, "bluff_lines": lines})
+
+@app.get("/cup/{cup}", response_class=HTMLResponse)
+async def get_bluff(request: Request, cup: str):
+    sod = get_start_of_day()
+    n_latest: Bluff = await Bluff.find(Bluff.date >= sod, Bluff.cup == cup).count()
+    while n_latest == 0:
+        sod = sod - dt.timedelta(days=1)
+        n_latest: Bluff = await Bluff.find(Bluff.date >= sod, Bluff.cup == cup).count()
     logger.info(f"n_latest: {n_latest}")
     skip = random.randint(0, n_latest-1)
     latest: Bluff = await Bluff.find(Bluff.date >= sod).skip(skip).first_or_none()

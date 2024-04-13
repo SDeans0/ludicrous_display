@@ -1,4 +1,5 @@
 import datetime as dt
+from typing import Optional, Set
 from beanie import Document, Indexed
 from pydantic import BaseModel
 
@@ -13,6 +14,10 @@ class Bluff(Document):
     message: str
     date: Indexed(dt.datetime)
     usage: Usage
+    country: Optional[str] = None
+    team1: Optional[str] = None
+    team2: Optional[str] = None
+    cup: Optional[str] = None
 
     class Settings:
         bson_encoders = {

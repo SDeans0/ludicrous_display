@@ -2,6 +2,7 @@ import asyncio
 import datetime as dt
 import logging
 import openai
+from beanie.operators import In, And
 from db import create_client, start_beanie_session, get_db
 from db.football import Match, Transfer, TransferType
 from db.gpt import Bluff, Usage
@@ -18,7 +19,7 @@ def _get_gpt_response(content: str, base_prompt: str = bluffball.prompt):
             {"content": base_prompt, "role": "system"},
             {"role": "assistant", "content": content},
         ],
-        max_tokens=1000,
+        max_tokens=500,
     )
 
     return response
@@ -28,7 +29,7 @@ def generate_from_prompt(
     content: str,
     base_prompt: str = bluffball.prompt,
 ) -> Bluff:
-    logger.debug(f"Generating bluff from prompt for {content}")
+    logger.info(f"Generating bluff from prompt for {content}")
     response = _get_gpt_response(content=content, base_prompt=base_prompt)
     bluff = Bluff(
         message=response["choices"][0]["message"]["content"],
@@ -40,7 +41,6 @@ def generate_from_prompt(
 
 async def refresh_bluffs():
     logger.debug("Refreshing bluffs")
-    bluffs = []
     await start_beanie_session()
     transfers = await Transfer.find(Transfer.bluffed == False).to_list(length=10)
     logger.info(f"Got {len(transfers)} transfers")
@@ -48,18 +48,18 @@ async def refresh_bluffs():
         if t.transferType != TransferType.done_deal:
             continue
         transfer_str = f"{t.playerName} from {t.oldClub} to {t.newClub} for {t.price}"
-        bluffs.append(generate_from_prompt(content=transfer_str))
+        bluff = generate_from_prompt(content=transfer_str)
+        await Bluff.insert(bluff)
         await Transfer.set(t, {"bluffed": True})
-    matches = await Match.find(Match.bluffed == False).to_list(length=100)
+    matches = await Match.find(And(Match.bluffed == False, In(Match.country, ("England", "Scotland", "Wales",)))).to_list(length=100)
     logger.info(f"Got {len(matches)} matches")
     for m in matches:
         match_str = m.json()
-        bluffs.append(generate_from_prompt(content=match_str))
+        bluff = generate_from_prompt(content=match_str)
+        await Bluff.insert(bluff)
         await Match.set(m, {"bluffed": True})
-    if bluffs:
-        logger.info(f"Inserting {len(bluffs)} bluffs")
-        await Bluff.insert_many(bluffs)
-
+        logger.info("Finished refreshing {m}")
+    logger.info("Finished refreshing bluffs")
 
 if __name__ == "__main__":
     # b = 1

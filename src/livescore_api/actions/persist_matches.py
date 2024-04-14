@@ -2,7 +2,7 @@ import asyncio
 import datetime as dt
 import os
 import logging
-from typing import List, Tuple
+from typing import List, Tuple, Optional, Union
 from db import start_beanie_session
 
 from db.football import Match, Score
@@ -11,32 +11,30 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-async def get_and_persist_fixtures(leagues: Tuple[str] = ("Premier League","Community Shield", "League One","FA Cup", "Championship", "League Two", "EFL Cup", "FA Women's Super League", "Women's FA Cup", "Women's World Cup", "Cymru Premier", "World Cup")):
+async def get_and_persist_fixtures():
     """
-    Get fixtures from the api and persist them in the database
+    Get fixtures from the api and persist them in the database. Do no filtering.
     """
     api_key = os.environ.get("RAPID_API_KEY")
     client = LiveScoreApiClient(api_key=api_key)
     logger.info("Getting fixtures from api")
     fixtures = client.get_matches()
     logger.info("Converting fixtures to matches")
-    matches = convert_fixtures(fixtures, leagues)
+    matches = convert_fixtures(fixtures)
     try:
         await Match.insert_many(matches)
     except Exception as e:
         logger.exception(e)
 
 
-def convert_fixtures(fixture: dict, included_leagues: Tuple[str]) -> List[Match]:
+def convert_fixtures(fixture: dict) -> List[Match]:
     """
     Convert the fixture dictionary from the api into list of match objects
     """
     output: List[Match] = []
 
     for stage in fixture["Stages"]:
-        if (comp:=stage.get("CompN")) not in included_leagues:
-            logger.info(f"Skipping {comp} in country {stage.get('Cnm', 'Unknown')}")
-            continue
+        comp = stage.get("CompN", f"{stage['Cnm']} {stage['Snm']}")
         logger.info(f"Converting {comp}")
         for event in stage.get("Events", []):
             # example event structure, for a match between home team burnley and away team man city:
@@ -58,14 +56,14 @@ def convert_fixtures(fixture: dict, included_leagues: Tuple[str]) -> List[Match]
                         homeTeamScore=event["Trp1"],
                         awayTeamScore=event["Trp2"],
                     ) if "Trp1" in event else None,
-                    competition=stage.get("CompN"),
+                    competition=comp,
                     country=stage["Cnm"], 
                     date=dt.date.today().isoformat(),
                     date_added=dt.datetime.now(),
                     bluffed=False,
                 ))
             except KeyError as e:
-                logger.exception(str(e))
+                logger.exception(f"Stage failed: {stage}")
                 continue
     return output
 
